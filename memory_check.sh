@@ -15,12 +15,23 @@ cFLAG=false;
 eFLAG=false;
 wVALUE=0;
 cVALUE=0;
+eVALUE="";
 TOTALMEM=0;
 USEDMEM=0;
 PERCENT=0;
 #########FUNCTIONS
 
+#SENDMAIL
 
+send_mail(){
+
+ps -eo pid,cmd,%mem | head -11 > processes.txt 2>&1
+NOW=`date +%Y%m%d`
+TIMEN=`date +%H:%M`
+
+mail -s "$NOW $TIMEN memory check - critical" $eVALUE < processes.txt 
+
+}
 
 
 #GET STATUS IF CRITICAL, WARNING, NORMAL
@@ -30,18 +41,18 @@ get_status(){
 	USEDMEM=`free -m| grep Mem: | awk '{ print $3 }'`
 	PERCENT=$(bc <<< "scale=2;($USEDMEM * 100)/$TOTALMEM")
 	PERCENT=`printf "%.0f" $PERCENT`
-	echo $PERCENT
 
 	if [ $PERCENT -ge $cVALUE ];
 	then
-		echo "Used memory is greater than or equal to given critical"
+		echo "Used memory is greater than or equal to critical threshold"
+		send_mail
 		exit 2;
 	elif [ $PERCENT -ge $wVALUE ];
 	then
-		echo "Memory is greater than warning but less than critical"
+		echo "Used memory is greater than warning threshold but less than critical threshold"
 		exit 1;
 	else
-		echo "Memory less than warning"
+		echo "Used memory is less than warning threshold"
 		exit 0;
 	fi
 }
@@ -60,7 +71,7 @@ while getopts 'w:c:e:' INPUT; do
 			cFLAG=true
 			;;
 		e)
-			#echo $OPTARG
+			eVALUE=$OPTARG
 			eFLAG=true
 			;;
 		?/)
