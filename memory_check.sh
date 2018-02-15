@@ -13,21 +13,40 @@ OPTIND=1
 wFLAG=false;
 cFLAG=false;
 eFLAG=false;
+wVALUE=0;
+cVALUE=0;
+TOTALMEM=0;
+USEDMEM=0;
+FREEMEM=0;
+
+#########FUNCTIONS
+
+
+#GET STATUS IF CRITICAL, WARNING, NORMAL
+get_status(){
+
+	TOTALMEM="$(free -m| grep Mem: | awk '{ print $2 }')"
+	USEDMEM="$(free -m| grep Mem: | awk '{ print $3 }')"
+	FREEMEM="$(free -m| grep Mem: | awk '{ print $4 }')"
+
+		
+}
+
 
 
 #get Arguments
-while getopts ':w:c:e:' INPUT; do
+while getopts 'w:c:e:' INPUT; do
 		case "$INPUT" in
 		w)
-			echo $OPTARG
+			wVALUE=$OPTARG
 			wFLAG=true
 			;;
 		c)
-			echo $OPTARG
+			cVALUE=$OPTARG
 			cFLAG=true
 			;;
 		e)
-			echo $OPTARG
+			#echo $OPTARG
 			eFLAG=true
 			;;
 		?/)
@@ -35,10 +54,6 @@ while getopts ':w:c:e:' INPUT; do
 			exit 1
 			;;
 
-		:)
-			echo "Argument Required"
-			exit 1
-			;;
 		*)
 			echo "Script syntax: $(basename $0) requires -w -c and -e arguments"
 			exit 1
@@ -50,34 +65,41 @@ shift "$((OPTIND-1))"
 
 ##
 #check if required arguments are there
-if [ !wFLAG -a !cFLAG -a !eFLAG ]
+if [ "$wFLAG" = false -a "$cFLAG" = false -a "$eFLAG" = false ];
 then
 	echo "Script syntax: $(basename $0) -w WARNINGTHRESHOLD  -c CRITICALTHRESHOLD -e EMAILADDRESS"
-elif [ !wFLAG -a !cFLAG ]
+elif [ "$wFLAG" = false -a "$cFLAG" = false ];
 then
 	echo "-w (warning threshold) and -c (critical threshold) required"
 	exit 1
-elif [ !wFLAG -a !eFLAG]
+elif [ "$wFLAG" = false -a "$eFLAG" = false ];
 then
 	echo "-w (warning threshold) and -e (email address) required"
-elif [ !eFLAG -a !cFLAG ]
+	exit 1
+elif [ "$eFLAG" = false -a "$cFLAG" = false ];
 then
 	echo "-e (email address) and -c (critical threshold) are required"
-elif [ !eFLAG ]
+	exit 1
+elif [ "$eFLAG" = false ];
 then
 	echo "-e (email address) is required"
-elif [ !cFLAG ]
+	exit 1
+elif [ "$cFLAG" = false ];
 then
 	echo "-c (critical threshold) is required"
-elif [ !wFLAG ]
+	exit 1
+elif [ "$wFLAG" = false ];
 then
 	echo "-w (warning threshold) is required"
+	exit 1
+else
+	if [ $wVALUE -ge $cVALUE ];
+	then
+		echo "Warning Threshold must be lower than Critical Threshold"
+		exit 1
+
+#	else
+#		get_status
+	fi
+
 fi
-
-
-
-
-
-
-
-
