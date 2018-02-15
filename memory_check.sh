@@ -17,19 +17,33 @@ wVALUE=0;
 cVALUE=0;
 TOTALMEM=0;
 USEDMEM=0;
-FREEMEM=0;
-
+PERCENT=0;
 #########FUNCTIONS
+
+
 
 
 #GET STATUS IF CRITICAL, WARNING, NORMAL
 get_status(){
 
-	TOTALMEM="$(free -m| grep Mem: | awk '{ print $2 }')"
-	USEDMEM="$(free -m| grep Mem: | awk '{ print $3 }')"
-	FREEMEM="$(free -m| grep Mem: | awk '{ print $4 }')"
+	TOTALMEM=`free -m| grep Mem: | awk '{ print $2 }'`
+	USEDMEM=`free -m| grep Mem: | awk '{ print $3 }'`
+	PERCENT=$(bc <<< "scale=2;($USEDMEM * 100)/$TOTALMEM")
+	PERCENT=`printf "%.0f" $PERCENT`
+	echo $PERCENT
 
-		
+	if [ $PERCENT -ge $cVALUE ];
+	then
+		echo "Used memory is greater than or equal to given critical"
+		exit 2;
+	elif [ $PERCENT -ge $wVALUE ];
+	then
+		echo "Memory is greater than warning but less than critical"
+		exit 1;
+	else
+		echo "Memory less than warning"
+		exit 0;
+	fi
 }
 
 
@@ -98,8 +112,8 @@ else
 		echo "Warning Threshold must be lower than Critical Threshold"
 		exit 1
 
-#	else
-#		get_status
+	else
+		get_status
 	fi
 
 fi
