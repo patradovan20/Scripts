@@ -33,7 +33,6 @@ mail -s "$NOW $TIMEN memory check - critical" $eVALUE < processes.txt
 
 }
 
-
 #GET STATUS IF CRITICAL, WARNING, NORMAL
 get_status(){
 
@@ -42,12 +41,12 @@ get_status(){
 	PERCENT=$(bc <<< "scale=2;($USEDMEM * 100)/$TOTALMEM")
 	PERCENT=`printf "%.0f" $PERCENT`
 
-	if [ $PERCENT -ge $cVALUE ];
+	if [[ $PERCENT -ge $cVALUE ]] &>/dev/null;
 	then
 		echo "Used memory is greater than or equal to critical threshold"
 		send_mail
 		exit 2;
-	elif [ $PERCENT -ge $wVALUE ];
+	elif [[ $PERCENT -ge $wVALUE ]] &>/dev/null;
 	then
 		echo "Used memory is greater than warning threshold but less than critical threshold"
 		exit 1;
@@ -56,8 +55,6 @@ get_status(){
 		exit 0;
 	fi
 }
-
-
 
 #get Arguments
 while getopts 'w:c:e:' INPUT; do
@@ -90,39 +87,39 @@ shift "$((OPTIND-1))"
 
 ##
 #check if required arguments are there
-if [ "$wFLAG" = false -a "$cFLAG" = false -a "$eFLAG" = false ];
+if [ "$wFLAG" = false -a "$cFLAG" = false -a "$eFLAG" = false ] > /dev/null;
 then
 	echo "Script syntax: $(basename $0) -w WARNINGTHRESHOLD  -c CRITICALTHRESHOLD -e EMAILADDRESS"
-elif [ "$wFLAG" = false -a "$cFLAG" = false ];
+elif [ "$wFLAG" = false -a "$cFLAG" = false ] > /dev/null;
 then
 	echo "-w (warning threshold) and -c (critical threshold) required"
 	exit 1
-elif [ "$wFLAG" = false -a "$eFLAG" = false ];
+elif [ "$wFLAG" = false -a "$eFLAG" = false ] > /dev/null;
 then
 	echo "-w (warning threshold) and -e (email address) required"
 	exit 1
-elif [ "$eFLAG" = false -a "$cFLAG" = false ];
+elif [ "$eFLAG" = false -a "$cFLAG" = false ] > /dev/null;
 then
 	echo "-e (email address) and -c (critical threshold) are required"
 	exit 1
-elif [ "$eFLAG" = false ];
+elif [ "$eFLAG" = false ] > /dev/null;
 then
 	echo "-e (email address) is required"
 	exit 1
-elif [ "$cFLAG" = false ];
+elif [ "$cFLAG" = false ] >/dev/null;
 then
 	echo "-c (critical threshold) is required"
 	exit 1
-elif [ "$wFLAG" = false ];
+elif [ "$wFLAG" = false ] >/dev/null;
 then
 	echo "-w (warning threshold) is required"
 	exit 1
 else
-	if [ $wVALUE -ge $cVALUE ];
+
+	if [ $wVALUE -ge $cVALUE ] &>/dev/null;
 	then
 		echo "Warning Threshold must be lower than Critical Threshold"
 		exit 1
-
 	else
 		get_status
 	fi
